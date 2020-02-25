@@ -1,0 +1,29 @@
+from linkedin_v2 import linkedin
+import requests
+
+API_KEY = ''
+API_SECRET = ''
+RETURN_URL = ''
+PERMS = ['r_emailaddress','r_liteprofile','w_member_social','r_ads','w_organization_social','rw_ads','r_basicprofile',
+         'r_ads_reporting','r_organization_social','rw_organization_admin','w_member_social','r_1st_connections_size']
+authentication = linkedin.LinkedInAuthentication(API_KEY, API_SECRET, RETURN_URL, PERMS)
+# Optionally one can send custom "state" value that will be returned from OAuth server
+# It can be used to track your user state or something else (it's up to you)
+# Be aware that this value is sent to OAuth server AS IS - make sure to encode or hash it
+#authorization.state = 'your_encoded_message'
+print(authentication.authorization_url)  # open this url on your browser
+application = linkedin.LinkedInApplication(authentication)
+
+code = ''
+ENDPOINT = 'https://www.linkedin.com/oauth/v2/accessToken'
+DATA = {'grant_type':'authorization_code',
+       'code':code,
+       'redirect_uri':RETURN_URL,
+        'client_id':API_KEY,
+        'client_secret':API_SECRET
+       }
+r = requests.post(url = ENDPOINT,data = DATA)
+rt = r.text
+token = rt['access_token']
+rp = requests.get(url = 'https://api.linkedin.com/v2/adAnalyticsV2?q=analytics&dateRange.start.day=1&dateRange.start.month=1&dateRange.start.year=2020&timeGranularity=DAILY&campaigns[0]=urn:li:sponsoredCampaign:143177586', headers = {"Authorization":"Bearer "+token})
+rp.json()
